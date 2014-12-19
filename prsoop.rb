@@ -38,13 +38,15 @@ class Player
 end
 
 class Game
-  attr_accessor :computer, :player
+  attr_accessor :computer, :player, :games_played, :player_wins
   CHOICES = {"p" => "Paper", "r" => "Rock", "s" => "Scissors"}
   OUTCOMES = ["Paper Covers Rock! ", "Rock Crushes Scissors! ", "Scissors Cuts paper! ", "You win!", "You Lose!"]
   
   def initialize
     @player = Player.new("player")
     @computer = Player.new("computer")
+    @player_wins = 0
+    @games_played = 0
   end
   
   def proper_selection?(c)
@@ -57,21 +59,30 @@ class Game
   end
   
   def win_or_lose(player_choice, computer_choice)
+    self.games_played += 1
     case
       when player_choice == "p" && computer_choice == "r"
+      self.player_wins += 1
       OUTCOMES[0] + OUTCOMES[3]
       when player_choice == "p" && computer_choice == "s"
       OUTCOMES[2] + OUTCOMES[4]
       when player_choice == "r" && computer_choice == "p"
       OUTCOMES[0] + OUTCOMES[4]
       when player_choice == "r" && computer_choice == "s"
+      self.player_wins += 1
       OUTCOMES[1] + OUTCOMES[3]
       when player_choice == "s" && computer_choice == "p"
+      self.player_wins +=1
       OUTCOMES[2] + OUTCOMES[3]
       when player_choice == "s" && computer_choice == "r"
       OUTCOMES[1] + OUTCOMES[4]
     end
   end
+    
+  def record
+    "#{player.name}, you have won #{player_wins} out of #{games_played} games."
+  end
+  
     
   def play
     begin
@@ -81,8 +92,8 @@ class Game
         computer.computer_picks_hand
         puts player; puts computer
       end while tie?
-      puts player.choice
       puts win_or_lose(player.choice, computer.choice)
+      puts record
     end while player.again?
   end
 
