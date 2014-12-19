@@ -3,29 +3,30 @@
 class Player
   attr_accessor :name, :choice
   
-  def initialize(n)
-    if n == "player" 
+  def initialize(name)
+    if name == "player" 
       puts "What is your name?" 
       @name = gets.chomp
     else
-      @name = n
+      @name = name
     end
     @choice = nil
   end
   
-  def choice_prompt
-    puts "#{name}, please choose paper, rock or scissors by typing ( P / R / S )"
-    gets.chomp
+  def picks_hand
+    loop do
+      puts "#{name}, please choose paper, rock or scissors by typing ( P / R / S )"
+      self.choice = gets.chomp
+    break if Game::CHOICES.keys.include?(choice)
+    end
   end
   
-   def refine_choice
-    @choice = "Paper"    if @choice == "p"
-    @choice = "Rock"     if @choice == "r"
-    @choice = "Scissors" if @choice == "s"
+  def computer_picks_hand
+    self.choice = Game::CHOICES.keys.sample
   end
   
   def to_s
-    "#{name} chose #{choice}"
+    "#{name} chose #{Game::CHOICES[choice]}"
   end
   
   def again?
@@ -37,73 +38,54 @@ class Player
 end
 
 class Game
-  attr_accessor :computer_choice, :player_choice
-  CHOICES = ["p", "r", "s"]
-  OUTCOMES = ["Paper Covers Rock!", "Rock Crushes Scissors!", "Scissors Cuts paper!", "You win!", "You Lose!"]
-  @@number_of_games = 0
-  @@player_wins = 0
+  attr_accessor :computer, :player
+  CHOICES = {"p" => "Paper", "r" => "Rock", "s" => "Scissors"}
+  OUTCOMES = ["Paper Covers Rock! ", "Rock Crushes Scissors! ", "Scissors Cuts paper! ", "You win!", "You Lose!"]
   
   def initialize
-    @computer_choice = nil
-    @player_choice = nil
-    @@number_of_games += 1
+    @player = Player.new("player")
+    @computer = Player.new("computer")
   end
   
   def proper_selection?(c)
     CHOICES.include?(c)
   end
   
-  def computer_chooses
-    CHOICES.sample
-  end
-
   def tie?
-    puts "Its a tie, throw em again!" if computer_choice == player_choice
-    computer_choice == player_choice
+    puts "Its a tie, throw em again!" if computer.choice == player.choice
+    computer.choice == player.choice
   end
   
-  def win_or_lose(pc, cc)
+  def win_or_lose(player_choice, computer_choice)
     case
-      when pc == "p" && cc =="r"
-      @@player_wins += 1
-      OUTCOMES[0] + " " + OUTCOMES[3]
-      when pc == "p" && cc == "s"
-      OUTCOMES[2] + " " + OUTCOMES[4]
-      when pc == "r" && cc == "p"
-      OUTCOMES[0] + " " + OUTCOMES[4]
-      when pc == "r" && cc == "s"
-      @@player_wins += 1
-      OUTCOMES[1] + " " + OUTCOMES[3]
-      when pc == "s" && cc == "p"
-      @@player_wins += 1
-      OUTCOMES[2] + " " + OUTCOMES[3]
-      when pc == "s" && cc == "r"
-      OUTCOMES[1] + " " + OUTCOMES[4]
-    end
-    
-    def to_s
-      s = ''
-      s = "s" if @@number_of_games > 1
-      "Your record is #{@@player_wins} win#{s} out of #{@@number_of_games} game#{s}."
+      when player_choice == "p" && computer_choice == "r"
+      OUTCOMES[0] + OUTCOMES[3]
+      when player_choice == "p" && computer_choice == "s"
+      OUTCOMES[2] + OUTCOMES[4]
+      when player_choice == "r" && computer_choice == "p"
+      OUTCOMES[0] + OUTCOMES[4]
+      when player_choice == "r" && computer_choice == "s"
+      OUTCOMES[1] + OUTCOMES[3]
+      when player_choice == "s" && computer_choice == "p"
+      OUTCOMES[2] + OUTCOMES[3]
+      when player_choice == "s" && computer_choice == "r"
+      OUTCOMES[1] + OUTCOMES[4]
     end
   end
+    
+  def play
+    begin
+      begin
+        begin
+        end while proper_selection?(player.picks_hand)
+        computer.computer_picks_hand
+        puts player; puts computer
+      end while tie?
+      puts player.choice
+      puts win_or_lose(player.choice, computer.choice)
+    end while player.again?
+  end
+
 end
 
-player = Player.new("player")
-computer = Player.new("Computer")
-begin
-  game = Game.new
-  begin
-    begin
-      player.choice = (game.player_choice = player.choice_prompt.downcase)
-    end while !game.proper_selection?(player.choice)
-    computer.choice = (game.computer_choice = game.computer_chooses)
-  end while game.tie?
-  player.refine_choice
-  computer.refine_choice
-  puts player
-  puts computer
-  puts game.win_or_lose(game.player_choice, game.computer_choice)
-  puts game
-end while player.again?
-
+game = Game.new.play
