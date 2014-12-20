@@ -1,15 +1,16 @@
 # In tictactoe two players, one using x, one using o, mark 1 of 9 squares on a board.  
 # if one of the players owns 3 squares in a row they win the game.
-    
+require 'pry'
 class Player
   attr_reader :marker, :name
+  WINNING_ARRAYS = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
   
   def initialize(marker)
     @marker = marker
   end
   
   def winner?(claimed_squares)
-    not_empty_wins = Board::WINNING_ARRAYS.select do |a|
+    not_empty_wins = WINNING_ARRAYS.select do |a|
                       [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]] == [@marker, @marker, @marker]
                     end
     !not_empty_wins.empty?
@@ -38,26 +39,49 @@ class Human < Player
     super(marker)
   end
   
-  def pick_square(squares)
+  def pick_square(claimed_squares)
     begin 
     puts "Please choose an empty square using the number 1-9"
     chosen_square = gets.chomp.to_i
-    end until squares[chosen_square] == '_'
+    end until claimed_squares[chosen_square] == '_'
     chosen_square
   end
+
 end
 
 class Computer < Player
-  def pick_square(squares)
+  
+  def pick_square(claimed_squares, player)
     begin
-      computer_square = squares.keys.sample
-    end until squares[computer_square] == "_"
+        if two_in_a_row?(claimed_squares)
+          computer_square = two_in_a_row(claimed_squares)
+        else
+          computer_square = claimed_squares.keys.sample
+        end
+    end until claimed_squares[computer_square] == "_"
     computer_square
   end
+  
+  def two_in_a_row?(claimed_squares)
+    not_empty_two_in_a_row = WINNING_ARRAYS.select do |a|
+                      [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]].sort == ["X", "X", "_"]
+                    end
+    !not_empty_two_in_a_row.empty?
+  end
+  
+  def two_in_a_row(claimed_squares)
+    two_in_array = WINNING_ARRAYS.select do |a|
+                      [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]].sort == ["X", "X", "_"]
+                   end
+    two_in_array.flatten.select do |n|
+      claimed_squares[n] == "_"
+    end.pop
+  end
+  
 end
 
 class Board
-  WINNING_ARRAYS = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]]
+  
   
   def initialize
   end
@@ -95,7 +119,7 @@ class Game
       claimed_squares[player.pick_square(claimed_squares)] = player.marker
       board.draw_board(@claimed_squares)
       player.check_for_finished_game(@claimed_squares)
-      claimed_squares[computer.pick_square(claimed_squares)] = computer.marker
+      claimed_squares[computer.pick_square(claimed_squares, player)] = computer.marker
       computer.check_for_finished_game(@claimed_squares)
     end
   end
