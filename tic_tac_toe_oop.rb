@@ -13,9 +13,9 @@ class Player
     not_empty_wins = WINNING_ARRAYS.select do |a|
                       [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]] == [@marker, @marker, @marker]
                     end
-    !not_empty_wins.empty?
+    not_empty_wins.any?
   end
-    
+  
   def tie?(claimed_squares)
     !claimed_squares.values.include?("_")
   end
@@ -46,14 +46,19 @@ class Human < Player
     end until claimed_squares[chosen_square] == '_'
     chosen_square
   end
-
 end
 
 class Computer < Player
   
+  def initialize(marker)
+    @name = "Computer"
+    super(marker)
+  end
+  
+
   def pick_square(claimed_squares, player)
     begin
-        if two_in_a_row?(claimed_squares)
+        if two_in_a_row(claimed_squares).is_a?(Integer)
           computer_square = two_in_a_row(claimed_squares)
         else
           computer_square = claimed_squares.keys.sample
@@ -62,17 +67,10 @@ class Computer < Player
     computer_square
   end
   
-  def two_in_a_row?(claimed_squares)
-    not_empty_two_in_a_row = WINNING_ARRAYS.select do |a|
-                      [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]].sort == ["X", "X", "_"]
-                    end
-    !not_empty_two_in_a_row.empty?
-  end
-  
   def two_in_a_row(claimed_squares)
     two_in_array = WINNING_ARRAYS.select do |a|
                       [claimed_squares[a[0]], claimed_squares[a[1]], claimed_squares[a[2]]].sort == ["X", "X", "_"]
-                   end
+                  end
     two_in_array.flatten.select do |n|
       claimed_squares[n] == "_"
     end.pop
@@ -82,11 +80,12 @@ end
 
 class Board
   
-  
-  def initialize
+  def clear_screen
+    system 'clear'
   end
-  
+
   def draw_board(claimed_squares)
+    clear_screen
     puts "    |    |    "
     puts " #{claimed_squares[1]}  | #{claimed_squares[2]}  | #{claimed_squares[3]} "
     puts "____|____|____"
@@ -99,9 +98,6 @@ class Board
   end
 end
 
-class Square
-end
-
 class Game
   attr_reader :player, :computer 
   attr_accessor :claimed_squares, :board
@@ -111,6 +107,7 @@ class Game
     @computer = Computer.new("O")
     @claimed_squares = {1 => "_", 2 => "_", 3 => "_", 4 => "_", 5 => "_", 6 => "_", 7 => "_", 8 => "_", 9 => "_"}
     @board = Board.new
+    @current_player = @player
   end
   
   def play
@@ -120,6 +117,7 @@ class Game
       board.draw_board(@claimed_squares)
       player.check_for_finished_game(@claimed_squares)
       claimed_squares[computer.pick_square(claimed_squares, player)] = computer.marker
+      board.draw_board(@claimed_squares)
       computer.check_for_finished_game(@claimed_squares)
     end
   end
