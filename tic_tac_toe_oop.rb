@@ -54,7 +54,6 @@ class Computer < Player
     @name = "Computer"
     super(marker)
   end
-  
 
   def pick_square(claimed_squares, player)
     begin
@@ -75,7 +74,6 @@ class Computer < Player
       claimed_squares[n] == "_"
     end.pop
   end
-  
 end
 
 class Board
