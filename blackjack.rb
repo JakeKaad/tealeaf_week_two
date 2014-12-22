@@ -1,5 +1,3 @@
-
-
 class Deck
   attr_accessor :cards
   CARD_VALUES = (2..10).to_a << "Jack" << "Queen" << "King" << "Ace"
@@ -16,7 +14,6 @@ class Deck
   def deal
     @cards.pop
   end
-  
 end
 
 class Card
@@ -49,7 +46,6 @@ class Player
   def bust?
     total > 21
   end
-    
 end
 
 class Human < Player
@@ -80,7 +76,6 @@ class Dealer < Player
       return "stay"
     end
   end
-  
 end
 
 class Blackjack
@@ -197,7 +192,6 @@ class Blackjack
     dealer_turn unless player.bust?
     display_winner
   end
-
 end
 
 class Bank
@@ -206,7 +200,6 @@ class Bank
   def initialize(deposit)
     @balance = deposit
   end
-  
 end
 
 class Engine
@@ -253,7 +246,6 @@ class Engine
   def winner?
     @game.winner == "Player"
   end
-  
   
   def again?
     say "would you like to play again? ( Y / N)"
