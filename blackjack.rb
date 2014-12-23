@@ -4,7 +4,12 @@ class Deck
   SUITS = ["Spades", "Clubs", "Hearts", "Diamonds"]
 
   def initialize
-    @cards = CARD_VALUES.product(SUITS).each {|card| card  = Card.new(card[0], card[1]) }
+    @cards = []
+    SUITS.each do |suit|
+      CARD_VALUES.each do |value|
+        @cards << Card.new(value, suit)
+      end
+    end
   end
   
   def shuffle
@@ -22,6 +27,11 @@ class Card
     @value = value
     @suit = suit
   end
+  
+  def name 
+    "#{value} of #{suit}"
+  end
+  
 end
 
 
@@ -35,7 +45,7 @@ class Player
   end
   
   def display_hand(hand)
-    puts "#{name}'s hand is #{hand.map { |card| "#{card[0]} of #{card[1]}" }.join(", ")}"
+    puts "#{name}'s hand is #{hand.map { |card| card.name }.join(", ")}"
     puts "with a total of #{total}"
   end
   
@@ -50,7 +60,7 @@ end
 
 class Human < Player
   
-  def hit_or_stay?(dealer_hand)
+  def hit_or_stay(dealer_hand)
       begin
         system 'clear'
         puts "Dealer is showing: #{dealer_hand}"
@@ -66,14 +76,14 @@ class Dealer < Player
   
   def display_dealer_first_card(hand)
     card = hand.first
-    "#{card[0]} of #{card[1]}"
+    "#{card.name}"
   end
   
-  def hit_or_stay?
+  def hit_or_stay
     if total < 17
-      return "hit"
+      "hit"
     else
-      return "stay"
+      "stay"
     end
   end
 end
@@ -86,13 +96,13 @@ class Blackjack
     @deck = Deck.new
     @dealer = Dealer.new("Dealer")
     @player = Human.new("Player")
-    @winner = nil
+    @winner = "Dealer"
   end
   
   def calculate_total(hand)
     total = 0
     
-    card_values = hand.map { |card| card[0] }
+    card_values = hand.map { |card| card.value }
     
     card_values.each do |value|
       if value == "Ace"
@@ -126,14 +136,12 @@ class Blackjack
   
   def player_turn
     if player.blackjack?(player.hand)
-      puts "Congratulations, you hit blackjack, lets see what the dealer has."
       @winner = player.name
     else 
-      while player.hit_or_stay?(dealer.display_dealer_first_card(dealer.hand)) == "hit"
+      while player.hit_or_stay(dealer.display_dealer_first_card(dealer.hand)) == "hit"
         player.hand << deck.deal
         update_totals
         if player.bust?
-          puts "You busted with a total of #{player.total}"
           @winner = dealer.name
           break
         end
@@ -144,10 +152,9 @@ class Blackjack
   def dealer_turn
     dealer.display_hand(dealer.hand)
     if dealer.blackjack?(dealer.hand)
-      puts "The dealer hit Blackjack!"
       @winner = dealer.name
     else
-      until dealer.hit_or_stay? == "stay"
+      until dealer.hit_or_stay == "stay"
         sleep 1
         system 'clear'
         puts "The dealer hits"
@@ -155,7 +162,6 @@ class Blackjack
         update_totals
         dealer.display_hand(dealer.hand)
         if dealer.bust?
-          puts "The dealer busted with a total #{dealer.total}"
           @winner = player.name
           break
         end
@@ -164,7 +170,7 @@ class Blackjack
   end
   
   def find_the_winner
-    if winner == nil
+    if @winner == nil
       @winner = player.name if player.total > dealer.total
     end
   end
